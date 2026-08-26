@@ -1,0 +1,26 @@
+name: refresh-official-calendar
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - run: python3 generate_relay.py
+      - name: Commit changed public calendar only
+        shell: bash
+        run: |
+          git config user.name "barkwatch-calendar-bot"
+          git config user.email "barkwatch-calendar-bot@users.noreply.github.com"
+          git add -- official-calendar-relay.json
+          git diff --cached --quiet && exit 0
+          git commit -m "refresh official calendar"
+          git push
